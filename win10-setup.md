@@ -1,5 +1,3 @@
-Good — this is exactly the right next step. What you are asking for is a **recovery + rebuild manual** so your system can be restored after Windows crash. I’ll make it clean, repeatable, and realistic for your exact stack.
-
 ---
 
 # 📘 FULL RECOVERY MANUAL (Windows 10 + Laravel + XAMPP Setup)
@@ -24,6 +22,49 @@ Choose:
 php-8.1.34-Win32-vs16-x64.zip
 ```
 
+Extract it in C:\php8.1
+
+Add it to system path, for that open run cmd by doing win+R then type 
+
+```
+sysdm.cpl
+```
+then 
+Click Advanced
+Click Environment Variables
+Edit PATH
+Under System Variables:
+Select Path
+Click Edit
+Click New
+Add
+```
+C:\php8.1
+```
+
+Check php.ini is present. If it is not present then copy php.ini-development to php.ini
+Make usre below extension does not have ; before them in php.ini
+
+extension=mbstring
+
+extension=gd
+
+extension=exif
+
+extension=fileinfo
+
+extension=pdo_mysql
+
+extension=curl
+
+extension=openssl
+
+extension=zip ; ignore if not present
+
+Make sure this line also does not have ; at start 
+
+extension_dir = "ext"
+
 ---
 
 ## 2. Composer
@@ -31,6 +72,9 @@ php-8.1.34-Win32-vs16-x64.zip
 * Version: **2.10+**
 * Download:
   [https://getcomposer.org/Composer-Setup.exe](https://getcomposer.org/Composer-Setup.exe)
+
+
+During setup install, make sure PHP path is C:\php8.1\php.exe
 
 ---
 
@@ -46,11 +90,13 @@ Choose:
 node-v20.19.2-x64.msi
 ```
 
+install in default location
+
 ---
 
 ## 4. XAMPP (Apache + MySQL)
 
-* Version: latest stable
+* Version: 8.1.25 / PHP 8.1.25
 * Download:
   [https://www.apachefriends.org/download.html](https://www.apachefriends.org/download.html)
 
@@ -59,12 +105,33 @@ Install path MUST be:
 ```
 C:\xampp
 ```
+Select ONLY:
+
+✔ Apache
+
+✔ MySQL
+
+✔ phpMyAdmin (optional but useful)
+
+Open Xampp control panel and start Apache and mysql
+
+Verify Apache works
+
+http://localhost
+
+Verify mysql work
+
+http://localhost/phpmyadmin
+
+In Xampp control panel, make sure to check the service column tick
 
 ---
 
-# ⚙️ 2. POST-INSTALL CONFIGURATION
+# ⚙️ 2. POST-INSTALL CONFIGURATION check
 
 ---
+
+make sure below is done
 
 ## A. PHP Setup (CLI)
 
@@ -170,6 +237,8 @@ Enable services (optional):
 
 After reinstall Windows:
 
+Clone the repo in
+
 ```
 C:\xampp\htdocs\pharmacy
 ```
@@ -187,7 +256,39 @@ git clone <your-repo-url>
 
 ```cmd
 cd C:\xampp\htdocs\pharmacy
-composer install
+composer install --no-interaction --prefer-dist --ignore-platform-reqs
+```
+
+Patch the package.json to look like below
+
+```
+{
+    "private": true,
+    "scripts": {
+        "dev": "npm run development",
+        "development": "mix",
+        "watch": "mix watch",
+        "watch-poll": "mix watch -- --watch-options-poll=1000",
+        "hot": "mix watch --hot",
+        "prod": "npm run production",
+        "production": "mix --production"
+    },
+    "devDependencies": {
+        "axios": "^0.21",
+	"webpack": "5.74.0",
+  	"webpack-cli": "4.10.0",
+        "laravel-mix": "^6.0.6",
+        "lodash": "^4.17.19",
+        "postcss": "^8.1.14"
+    }
+}
+
+```
+
+then
+
+```
+npm install  && npm run dev
 ```
 
 ---
@@ -227,24 +328,23 @@ php artisan key:generate
 
 ---
 
-## STEP 6 — Frontend build
-
-```cmd
-npm install
-npm run build
-```
-
----
-
 ## STEP 7 — Apache setup
 
-Edit:
+Make sure file `C:\xampp\apache\conf\httpd.conf` has uncommented
+
+`LoadModule rewrite_module modules/mod_rewrite.so`
+
+and also inside block `<Directory "C:/xampp/htdocs">` it has
+
+`AllowOverride All`
+
+Then Edit:
 
 ```
 C:\xampp\apache\conf\extra\httpd-vhosts.conf
 ```
 
-Add:
+Add at end of file:
 
 ```apache
 <VirtualHost *:80>
@@ -276,9 +376,11 @@ Add:
 
 Restart Apache.
 
+**And system is live now**
+
 ---
 
-# 🗄️ 4. DATABASE BACKUP (CRITICAL)
+# DATABASE BACKUP (CRITICAL)
 
 You have 3 safe methods:
 
@@ -362,7 +464,7 @@ node_modules/
 
 ---
 
-# 🔁 6. FULL RECOVERY CHECKLIST (AFTER CRASH)
+# 🔁 FULL RECOVERY CHECKLIST (AFTER CRASH)
 
 After reinstall:
 
